@@ -31,5 +31,19 @@ router.post('/users', authenticate, authorize(['SUPERADMIN', 'ORG_ADMIN']), asyn
     });
     res.json(newUser);
 });
+router.get('/users', authenticate, authorize(['SUPERADMIN', 'ORG_ADMIN']), async (req, res) => {
+    try {
+        let where = {};
+        if (req.user.role === 'ORG_ADMIN') where = { orgId: req.user.orgId };
+
+        const users = await prisma.user.findMany({
+            where,
+            select: { id: true, email: true, role: true, orgId: true, brandId: true } 
+        });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: "Không thể lấy danh sách người dùng" });
+    }
+});
 
 module.exports = router;

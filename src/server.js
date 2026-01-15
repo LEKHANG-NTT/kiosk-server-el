@@ -30,7 +30,7 @@ const { initAllNamespaces } = require('./socket/namespace');
 initAllNamespaces(io);
 
 const PORT = process.env.PORT || 3001;
-const HOST = process.env.HOST || '0.0.0.0';
-server.listen(PORT, HOST, () => {
-    console.log(`🚀 Server đang chạy tại: http://${HOST}:${PORT}`);
+// const HOST = process.env.HOST || '0.0.0.0';
+server.listen(PORT, () => {
+    console.log(`🚀 Server đang chạy tại: http://172.168.12.80:${PORT}`);
 });
