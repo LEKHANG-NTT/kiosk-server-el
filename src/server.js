@@ -4,6 +4,9 @@ const cors = require('cors');
 const { Server } = require('socket.io');
 require('dotenv').config();
 
+// Khởi tạo database connection
+const prisma = require('./config/db');
+
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
@@ -31,6 +34,23 @@ initAllNamespaces(io);
 
 const PORT = process.env.PORT || 3001;
 // const HOST = process.env.HOST || '0.0.0.0';
-server.listen(PORT, () => {
-    console.log(`🚀 Server đang chạy tại: http://172.168.12.80:${PORT}`);
+
+// Test database connection
+prisma.$connect()
+    .then(() => {
+        console.log('✅ Kết nối database thành công!');
+        server.listen(PORT, () => {
+            console.log(`🚀 Server đang chạy tại: http://172.168.12.81:${PORT}`);
+        });
+    })
+    .catch((err) => {
+        console.error('❌ Lỗi kết nối database:', err.message);
+        process.exit(1);
+    });
+
+// Graceful shutdown
+process.on('SIGINT', async () => {
+    console.log('\n🛑 Đóng kết nối database...');
+    await prisma.$disconnect();
+    process.exit(0);
 });

@@ -74,10 +74,16 @@ const setupNamespaceLogic = (io, nsName) => {
             // Phát sự kiện trạng thái riêng cho kiosk này
             nsp.emit('kiosk-status', { kioskId, status: 'online' });
 
-            // Cập nhật cấu hình từ Kiosk
+            // Cập nhật cấu hình từ Kiosk (merge với specs hiện có)
             socket.on('kiosk-report-config', async (data) => {
-                await prisma.kiosk.update({ where: { id: kioskId }, data: { specs: data, lastSeen: new Date() } });
-                nsp.emit('refresh-ui');
+                try {
+                    const existing = await prisma.kiosk.findUnique({ where: { id: kioskId } });
+                    const merged = Object.assign({}, existing?.specs || {}, data || {});
+                    await prisma.kiosk.update({ where: { id: kioskId }, data: { specs: merged, lastSeen: new Date() } });
+                    nsp.emit('refresh-ui');
+                } catch (err) {
+                    console.error('kiosk-report-config failed', err);
+                }
             });
 
             // Kiosk có thể gửi event đăng ký/chỉnh sửa thông tin chi tiết
